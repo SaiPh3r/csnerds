@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Book, BookOpen, Calendar, CheckCircle, Code, FileText, Users } from 'lucide-react';
 import {
@@ -18,7 +17,7 @@ const LandingPage = () => {
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <BookOpen className="h-6 w-6 text-blue-600" />
-            <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">scNerds</span>
+            <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">csNerds</span>
           </div>
           <div className="hidden md:flex space-x-8">
             <a href="#features" className="text-gray-700 hover:text-blue-600 transition-colors">Features</a>
@@ -79,7 +78,7 @@ const LandingPage = () => {
       <div id="features" className="bg-gray-50 py-16">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-800">Why CS403 Students Love scNerds</h2>
+            <h2 className="text-3xl font-bold text-gray-800">Why CS403 Students Love csNerds</h2>
             <p className="text-lg text-gray-600 mt-4 max-w-2xl mx-auto">
               Features designed specifically for computer science students to master complex concepts
             </p>
@@ -155,7 +154,7 @@ const LandingPage = () => {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-800">What Students Say</h2>
             <p className="text-lg text-gray-600 mt-4 max-w-2xl mx-auto">
-              Join hundreds of CS403 students who've improved their grades with scNerds
+              Join hundreds of CS403 students who've improved their grades with csNerds
             </p>
           </div>
 
@@ -169,7 +168,7 @@ const LandingPage = () => {
                 </div>
               </div>
               <p className="text-gray-700">
-                "scNerds helped me organize my algorithm notes in a way that finally made sense. The syntax highlighting and template features are game changers for CS403."
+                "csNerds helped me organize my algorithm notes in a way that finally made sense. The syntax highlighting and template features are game changers for CS403."
               </p>
             </div>
             
@@ -198,16 +197,16 @@ const LandingPage = () => {
 
           <div className="space-y-6">
             <div className="bg-white p-6 rounded-xl shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-800">Is scNerds only for CS403 students?</h3>
+              <h3 className="text-lg font-semibold text-gray-800">Is csNerds only for CS403 students?</h3>
               <p className="text-gray-600 mt-2">
-                While optimized for CS403, scNerds can be used for any computer science course. Our templates and features are particularly helpful for algorithm and data structure courses.
+                While optimized for CS403, csNerds can be used for any computer science course. Our templates and features are particularly helpful for algorithm and data structure courses.
               </p>
             </div>
 
             <div className="bg-white p-6 rounded-xl shadow-sm">
               <h3 className="text-lg font-semibold text-gray-800">Can I access my notes offline?</h3>
               <p className="text-gray-600 mt-2">
-                Yes! scNerds features offline access, allowing you to view and edit your notes even without an internet connection. Changes will sync when you're back online.
+                Yes! csNerds features offline access, allowing you to view and edit your notes even without an internet connection. Changes will sync when you're back online.
               </p>
             </div>
 
@@ -226,7 +225,7 @@ const LandingPage = () => {
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">Ready to ace CS403?</h2>
           <p className="text-xl text-blue-100 mb-8">
-            Join scNerds today and transform your computer science notes
+            Join csNerds today and transform your computer science notes
           </p>
           <button className="px-8 py-3 rounded-lg bg-white text-blue-600 font-medium hover:bg-blue-50 transition-colors">
             Start Taking Better Notes Now
@@ -241,7 +240,7 @@ const LandingPage = () => {
             <div>
               <div className="flex items-center space-x-2 mb-4">
                 <BookOpen className="h-6 w-6 text-blue-400" />
-                <span className="text-xl font-bold text-white">scNerds</span>
+                <span className="text-xl font-bold text-white">csNerds</span>
               </div>
               <p className="text-gray-400">
                 The ultimate note-taking solution for computer science students.
@@ -278,7 +277,7 @@ const LandingPage = () => {
           </div>
           
           <div className="border-t border-gray-700 mt-12 pt-8 text-center text-gray-400">
-            <p>© 2025 scNerds. All rights reserved.</p>
+            <p>© 2025 csNerds. All rights reserved.</p>
           </div>
         </div>
       </footer>
