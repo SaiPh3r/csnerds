@@ -1,7 +1,14 @@
+'use client'
 import React from 'react';
 import { BookOpen, Search, Bell, Filter, Plus, Star, Clock } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 const Feed = () => {
+  const router = useRouter()
+  const handleUpload = ()=>{
+    router.push('/upload')
+      
+  }
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -43,7 +50,7 @@ const Feed = () => {
             </button>
             <button className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
               <Plus className="h-4 w-4 mr-2" />
-              <span>New Note</span>
+              <span onClick={handleUpload}>New Note</span>
             </button>
           </div>
         </div>
