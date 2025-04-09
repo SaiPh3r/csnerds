@@ -1,15 +1,23 @@
-import React from 'react';
-import { BookOpen } from 'lucide-react';
+"use client";
+
+import React from "react";
+import { useRouter } from "next/navigation";
+import { BookOpen } from "lucide-react";
 import {
   SignInButton,
   SignUpButton,
   SignedIn,
   SignedOut,
   UserButton,
-} from '@clerk/nextjs'
-
+} from "@clerk/nextjs";
 
 const MinimalLandingPage = () => {
+  const router = useRouter(); 
+
+  const handleClick = () => {
+    router.push("/feed");
+  };
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Navigation */}
@@ -19,7 +27,7 @@ const MinimalLandingPage = () => {
             <BookOpen className="h-6 w-6 text-blue-600" />
             <span className="text-2xl font-bold text-blue-600">csNerds</span>
           </div>
-          
+
           <div className="flex space-x-4">
             <SignedOut>
               <div className="flex space-x-4">
@@ -28,7 +36,7 @@ const MinimalLandingPage = () => {
                     Sign In
                   </button>
                 </SignInButton>
-                
+
                 <SignUpButton mode="modal">
                   <button className="px-4 py-2 bg-white text-blue-600 font-medium rounded-lg border border-blue-600">
                     Sign Up
@@ -36,9 +44,9 @@ const MinimalLandingPage = () => {
                 </SignUpButton>
               </div>
             </SignedOut>
-            
+
             <SignedIn>
-              <UserButton  />
+              <UserButton />
             </SignedIn>
           </div>
         </div>
@@ -47,15 +55,22 @@ const MinimalLandingPage = () => {
       {/* Hero Section */}
       <div className="flex-grow flex items-center justify-center">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <h1 className="text-4xl font-bold text-gray-800 mb-6">CS403 Notes Made <span className="text-blue-600">Simple</span></h1>
+          <h1 className="text-4xl font-bold text-gray-800 mb-6">
+            CS403 Notes Made <span className="text-blue-600">Simple</span>
+          </h1>
           <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
             The ultimate note-taking app designed specifically for CS403 students. Organize, collaborate, and excel in your studies.
           </p>
-          <button className="px-6 py-3 rounded-lg bg-blue-600 text-white font-medium">Get Started Free</button>
+          <button
+            onClick={handleClick}
+            className="px-6 py-3 rounded-lg bg-blue-600 text-white font-medium"
+          >
+            Get Started 
+          </button>
         </div>
       </div>
 
-      {/* Footer - Minimal */}
+      {/* Footer */}
       <footer className="bg-gray-800 text-gray-300 py-6">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <p className="text-gray-400">© 2025 csNerds. All rights reserved.</p>
