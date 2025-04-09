@@ -1,6 +1,7 @@
 "use client";
 import { Toaster, toast } from "react-hot-toast";
-
+import { clerkMiddleware } from "@clerk/nextjs/server";
+import { useUser } from "@clerk/nextjs";
 import React from "react";
 import { useRouter } from "next/navigation";
 import { BookOpen } from "lucide-react";
@@ -14,9 +15,13 @@ import {
 
 const MinimalLandingPage = () => {
   const router = useRouter(); 
+  const {isSignedIn,user}=useUser()
+
 
   const handleClick = () => {
-    const isSignedIn = false; 
+   
+   
+    
     if (isSignedIn) {
       router.push("/feed");
     } else {
