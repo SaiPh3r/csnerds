@@ -1,4 +1,5 @@
 "use client";
+import { Toaster, toast } from "react-hot-toast";
 
 import React from "react";
 import { useRouter } from "next/navigation";
@@ -15,7 +16,12 @@ const MinimalLandingPage = () => {
   const router = useRouter(); 
 
   const handleClick = () => {
-    router.push("/feed");
+    const isSignedIn = false; 
+    if (isSignedIn) {
+      router.push("/feed");
+    } else {
+      toast.error("You must be signed in to access this page.");
+    }
   };
 
   return (
@@ -76,6 +82,9 @@ const MinimalLandingPage = () => {
           <p className="text-gray-400">© 2025 csNerds. All rights reserved.</p>
         </div>
       </footer>
+
+      {/* Toast Container */}
+      <Toaster position="top-center" />
     </div>
   );
 };
