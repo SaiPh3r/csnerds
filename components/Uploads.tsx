@@ -1,45 +1,143 @@
-'use client';
-import { FileText } from 'lucide-react';
+// components/Uploads.tsx
+'use client'
 
-const Upload = () => {
-  const handleUpload = async (e: any) => {
-    const formData = new FormData();
-    formData.append('file', e.target.files[0]);
-    const res = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData,
-    });
-    const data = await res.json();
-    console.log('Uploaded to:', data.url);
+import React, { useState, useRef } from 'react';
+import { Upload, FileText, Check, AlertCircle } from 'lucide-react';
+
+const Uploads = () => {
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [uploadResult, setUploadResult] = useState<{ url: string, public_id: string } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0] || null;
+    setFile(selectedFile);
+    setUploadStatus('idle');
+    setErrorMessage(null);
+    
+    if (selectedFile && selectedFile.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result as string);
+      };
+      reader.readAsDataURL(selectedFile);
+    } else {
+      setPreview(null);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!file) return;
+
+    setIsUploading(true);
+    setUploadStatus('idle');
+    setErrorMessage(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.log(result.error,response)
+        throw new Error(result.error || 'Upload failed');
+        
+      }
+
+      setUploadResult(result);
+      setUploadStatus('success');
+    } catch (error) {
+      console.error('Upload error:', error);
+      setUploadStatus('error');
+      setErrorMessage(error instanceof Error ? error.message : 'An unknown error occurred');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
   };
 
   return (
-    <div className="font-sans bg-white rounded-lg shadow-sm p-6 border border-gray-200 w-full">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-800">File Upload</h2>
-        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-md">CS403</span>
+    <div className="w-full">
+      <h2 className="text-xl font-semibold text-center mb-4 text-blue-600">Upload CS403 Notes</h2>
+      
+      <div 
+        className="border-2 border-dashed border-blue-300 rounded-lg p-6 mb-4 text-center cursor-pointer"
+        onClick={triggerFileInput}
+      >
+        <input
+          type="file"
+          className="hidden"
+          onChange={handleFileChange}
+          ref={fileInputRef}
+          accept="image/*,.pdf"
+        />
+        
+        {preview ? (
+          <div className="flex flex-col items-center">
+            <img src={preview} alt="Preview" className="max-h-40 max-w-full mb-4 rounded" />
+            <p className="text-gray-700">{file?.name}</p>
+          </div>
+        ) : file ? (
+          <div className="flex flex-col items-center">
+            <FileText size={48} className="text-blue-500 mb-2" />
+            <p className="text-gray-700">{file.name}</p>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center">
+            <Upload size={48} className="text-blue-500 mb-2" />
+            <p className="text-gray-700">Click to select a file</p>
+            <p className="text-gray-500 text-sm mt-1">Supports JPG, PNG, and PDF files</p>
+          </div>
+        )}
+        
+        {uploadStatus === 'success' && (
+          <div className="mt-4 flex items-center justify-center text-green-600">
+            <Check size={20} className="mr-2" />
+            <span>Upload successful!</span>
+          </div>
+        )}
+        
+        {uploadStatus === 'error' && (
+          <div className="mt-4 flex items-center justify-center text-red-600">
+            <AlertCircle size={20} className="mr-2" />
+            <span>{errorMessage || 'Upload failed'}</span>
+          </div>
+        )}
       </div>
       
-      <div className="mb-4">
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-blue-500 transition-colors">
-          <input
-            type="file"
-            onChange={handleUpload}
-            className="w-full p-2 text-sm text-gray-700 focus:outline-none"
-          />
+      <button
+        onClick={handleUpload}
+        disabled={!file || isUploading || uploadStatus === 'success'}
+        className="w-full py-2 px-4 rounded-lg font-medium bg-blue-600 text-white disabled:bg-gray-300 disabled:text-gray-500"
+      >
+        {isUploading ? 'Uploading...' : uploadStatus === 'success' ? 'Uploaded' : 'Upload File'}
+      </button>
+      
+      {uploadResult && uploadStatus === 'success' && (
+        <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <h3 className="font-semibold text-gray-800 mb-2">File uploaded successfully</h3>
+          <p className="text-sm text-gray-600 mb-1">
+            <a href={uploadResult.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+              View Uploaded File
+            </a>
+          </p>
         </div>
-      </div>
-      
-      <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-100">
-        <span className="flex items-center">
-          <FileText className="h-3 w-3 mr-1" /> 
-          Upload lecture notes, assignments, and code snippets
-        </span>
-        <span>Updated just now</span>
-      </div>
+      )}
     </div>
   );
 };
 
-export default Upload;
-  
+export default Uploads;
