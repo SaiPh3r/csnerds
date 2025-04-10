@@ -1,14 +1,85 @@
 'use client'
-import React from 'react';
-import { BookOpen, Search, Bell, Filter, Plus, Star, Clock } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { BookOpen, Search, Bell, Filter, Plus, Star, Clock, MessageCircle, Send, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 const Feed = () => {
   const router = useRouter()
-  const handleUpload = ()=>{
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [messages, setMessages] = useState<{ sender: string; text: string }[]>([]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const apiKey = "AIzaSyAW08GMRJfT467Kys6Lz6cutglglFJgS0M";
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+  const handleUpload = () => {
     router.push('/upload')
-      
   }
+
+  const toggleChat = () => {
+    setIsChatOpen(!isChatOpen);
+  }
+
+  const sendMessage = async () => {
+    if (!inputMessage.trim()) return;
+    
+    // Add user message to chat
+    const userMessage = { sender: 'user', text: inputMessage };
+    setMessages([...messages, userMessage]);
+    setInputMessage('');
+    setIsLoading(true);
+    
+    // Call Gemini API
+    try {
+      const data = {
+        contents: [
+          {
+            parts: [{ text: inputMessage }]
+          }
+        ]
+      };
+      
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      });
+      
+      const result = await response.json();
+      console.log("Response:", result);
+      
+      // Extract AI response from the result
+      let aiResponse = "Sorry, I couldn't process your request.";
+      if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
+        aiResponse = result.candidates[0].content.parts[0].text;
+      }
+      
+      // Add AI response to chat
+      setMessages(prev => [...prev, { sender: 'ai', text: aiResponse }]);
+    } catch (error) {
+      console.error("Error:", error);
+      setMessages(prev => [...prev, { sender: 'ai', text: "Sorry, there was an error processing your request." }]);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  // Auto-scroll to bottom of messages
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // Handle Enter key press
+  const handleKeyPress = (e:any) => {
+    if (e.key === 'Enter') {
+      sendMessage();
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -141,6 +212,91 @@ const Feed = () => {
           </div>
         </div>
       </main>
+
+      {/* AI Chatbot */}
+      <div className="fixed bottom-6 left-6 z-50">
+        {/* Chat Button */}
+        <button 
+          onClick={toggleChat}
+          className="flex items-center justify-center w-12 h-12 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-colors"
+        >
+          {isChatOpen ? (
+            <X className="h-6 w-6" />
+          ) : (
+            <MessageCircle className="h-6 w-6" />
+          )}
+        </button>
+
+        {/* Chat Window */}
+        {isChatOpen && (
+          <div className="absolute bottom-16 left-0 w-80 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden">
+            {/* Chat Header */}
+            <div className="bg-blue-600 text-white p-3 flex justify-between items-center">
+              <h3 className="font-medium">AI Assistant</h3>
+              <button onClick={toggleChat} className="text-white hover:text-gray-200">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Messages Container */}
+            <div className="p-3 h-80 overflow-y-auto bg-gray-50">
+              {messages.length === 0 ? (
+                <div className="text-center text-gray-500 my-4">
+                  <p>Ask me anything about CS concepts!</p>
+                </div>
+              ) : (
+                messages.map((msg, index) => (
+                  <div 
+                    key={index} 
+                    className={`mb-3 ${msg.sender === 'user' ? 'text-right' : 'text-left'}`}
+                  >
+                    <div 
+                      className={`inline-block p-3 rounded-lg ${
+                        msg.sender === 'user' 
+                          ? 'bg-blue-600 text-white rounded-br-none' 
+                          : 'bg-gray-200 text-gray-800 rounded-bl-none'
+                      } max-w-xs break-words`}
+                    >
+                      {msg.text}
+                    </div>
+                  </div>
+                ))
+              )}
+              {isLoading && (
+                <div className="text-left mb-3">
+                  <div className="inline-block p-3 rounded-lg bg-gray-200 text-gray-800 rounded-bl-none">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.4s'}}></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Input Area */}
+            <div className="border-t p-2 flex">
+              <input
+                type="text"
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Type a message..."
+                className="flex-1 py-2 px-3 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+              <button 
+                onClick={sendMessage}
+                disabled={isLoading || !inputMessage.trim()}
+                className="bg-blue-600 text-white p-2 rounded-r-lg hover:bg-blue-700 disabled:bg-blue-400"
+              >
+                <Send className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
