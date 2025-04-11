@@ -25,13 +25,13 @@ const Feed = () => {
   const sendMessage = async () => {
     if (!inputMessage.trim()) return;
     
-    // Add user message to chat
+    // user ko kro add bc
     const userMessage = { sender: 'user', text: inputMessage };
     setMessages([...messages, userMessage]);
     setInputMessage('');
     setIsLoading(true);
     
-    // Call Gemini API
+    //api
     try {
       const data = {
         contents: [
@@ -68,12 +68,12 @@ const Feed = () => {
     }
   }
 
-  // Auto-scroll to bottom of messages
+  // neeche ja mssg bhai apne aap
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Handle Enter key press
+  // press enter kro
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       sendMessage();
