@@ -17,8 +17,9 @@ export async function POST(request) {
     const result = await new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
-          folder: 'next_uploads',
+          folder: '403notes', // custom folder for CS403 uploads
           allowed_formats: ['jpg', 'png', 'pdf'],
+          resource_type: 'auto', // handles both images and documents
         },
         (error, result) => {
           if (error) reject(error);
@@ -33,6 +34,7 @@ export async function POST(request) {
       success: true,
       url: result.secure_url,
       public_id: result.public_id,
+      type: result.format === 'pdf' ? 'pdf' : 'image', // to help when rendering on feed
     });
 
   } catch (error) {
