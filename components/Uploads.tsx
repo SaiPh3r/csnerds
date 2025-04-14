@@ -6,6 +6,7 @@ import { Upload, FileText, Check, AlertCircle } from 'lucide-react';
 
 const Uploads = () => {
   const [file, setFile] = useState<File | null>(null);
+  const [fileTitle, setFileTitle] = useState<string>('');
   const [preview, setPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -18,6 +19,13 @@ const Uploads = () => {
     setFile(selectedFile);
     setUploadStatus('idle');
     setErrorMessage(null);
+    
+    // Set default title from filename but remove extension
+    if (selectedFile) {
+      const filename = selectedFile.name;
+      const titleWithoutExtension = filename.substring(0, filename.lastIndexOf('.')) || filename;
+      setFileTitle(titleWithoutExtension);
+    }
     
     if (selectedFile && selectedFile.type.startsWith('image/')) {
       const reader = new FileReader();
@@ -40,6 +48,7 @@ const Uploads = () => {
     try {
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('title', fileTitle || file.name); // Add title to form data
 
       const response = await fetch('/api/upload', {
         method: 'POST',
@@ -49,9 +58,8 @@ const Uploads = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        console.log(result.error,response)
+        console.log(result.error, response);
         throw new Error(result.error || 'Upload failed');
-        
       }
 
       setUploadResult(result);
@@ -117,6 +125,22 @@ const Uploads = () => {
           </div>
         )}
       </div>
+      
+      {file && (
+        <div className="mb-4">
+          <label htmlFor="fileTitle" className="block text-sm font-medium text-gray-700 mb-1">
+            Title
+          </label>
+          <input
+            type="text"
+            id="fileTitle"
+            value={fileTitle}
+            onChange={(e) => setFileTitle(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter a title for your file"
+          />
+        </div>
+      )}
       
       <button
         onClick={handleUpload}

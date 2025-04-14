@@ -10,14 +10,19 @@ import {
   Clock,
   MessageCircle,
   X,
+  FileText,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 type Document = {
   public_id: string;
   filename: string;
+  title: string;
   created_at: string;
   secure_url: string;
+  type?: string; // 'pdf' or 'image'
 };
 
 const Feed = () => {
@@ -29,8 +34,6 @@ const Feed = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [documents, setDocuments] = useState<Document[]>([]);
 
-  // Move API key to server-side for security
-  // This will be handled through a server API route
   const sendMessage = async () => {
     if (!inputMessage.trim()) return;
 
@@ -40,7 +43,6 @@ const Feed = () => {
     setIsLoading(true);
 
     try {
-      // Create a server-side API endpoint to handle the Gemini API call
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -72,7 +74,7 @@ const Feed = () => {
 
   const fetchDocuments = async () => {
     try {
-      const res = await fetch('/api/docs');
+      const res = await fetch('/api/documents');
       const data = await res.json();
       setDocuments(data);
     } catch (error) {
@@ -90,6 +92,19 @@ const Feed = () => {
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') sendMessage();
+  };
+
+  // Helper function to determine file type
+  const getFileType = (url: string): 'pdf' | 'image' => {
+    if (url.toLowerCase().endsWith('.pdf')) return 'pdf';
+    return 'image';
+  };
+
+  // Create a thumbnail URL for Cloudinary images (for optimized loading)
+  const getThumbnailUrl = (url: string, fileType: 'pdf' | 'image'): string => {
+    if (fileType === 'pdf') return url;
+    // For images, use Cloudinary's transformation to create a thumbnail
+    return url.replace('/upload/', '/upload/c_fill,h_200,w_300/');
   };
 
   return (
@@ -161,38 +176,60 @@ const Feed = () => {
 
           {/* Notes Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {documents.map((doc) => (
-              <div
-                key={doc.public_id}
-                className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
-              >
-                <div className="p-5">
-                  <div className="flex justify-between items-start mb-3">
-                    <h3 className="font-semibold text-lg text-gray-800 line-clamp-1">
-                      {doc.filename}
-                    </h3>
+            {documents.map((doc) => {
+              const fileType = doc.type || getFileType(doc.secure_url);
+              const thumbnailUrl = getThumbnailUrl(doc.secure_url, fileType);
+              
+              return (
+                <div
+                  key={doc.public_id}
+                  className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow overflow-hidden"
+                >
+                  {/* Preview Section */}
+                  <div className="h-40 bg-gray-100 overflow-hidden relative">
+                    {fileType === 'image' ? (
+                      <img 
+                        src={thumbnailUrl} 
+                        alt={doc.title || doc.filename}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center bg-blue-50">
+                        <FileText size={48} className="text-blue-500 mb-2" />
+                        <span className="text-blue-600 font-medium text-sm">PDF Document</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Content Section */}
+                  <div className="p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="font-semibold text-lg text-gray-800 line-clamp-1">
+                        {doc.title || doc.filename}
+                      </h3>
+                      <Star className="h-5 w-5 text-gray-400 hover:text-yellow-500 cursor-pointer" />
+                    </div>
+                    
                     <a
                       href={doc.secure_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-yellow-500"
+                      className="text-blue-600 hover:underline text-sm inline-flex items-center"
                     >
-                      <Star className="h-5 w-5" />
+                      <span>View document</span>
                     </a>
-                  </div>
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                    View or download this file from Cloudinary.
-                  </p>
-                  <div className="flex justify-between items-center text-xs text-gray-500 mt-4 pt-2 border-t">
-                    <span className="flex items-center">
-                      <Clock className="h-3 w-3 mr-1" />
-                      {new Date(doc.created_at).toLocaleDateString()}
-                    </span>
-                    <span>CS403</span>
+                    
+                    <div className="flex justify-between items-center text-xs text-gray-500 mt-3 pt-2 border-t">
+                      <span className="flex items-center">
+                        <Clock className="h-3 w-3 mr-1" />
+                        {new Date(doc.created_at).toLocaleDateString()}
+                      </span>
+                      <span>CS403</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </main>
       </div>
