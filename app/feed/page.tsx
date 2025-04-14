@@ -1,88 +1,94 @@
-'use client'
+'use client';
 import React, { useState, useRef, useEffect } from 'react';
-import { BookOpen, Search, Bell, Filter, Plus, Star, Clock, MessageCircle, Send, X } from 'lucide-react';
+import {
+  BookOpen,
+  Search,
+  Bell,
+  Filter,
+  Plus,
+  Star,
+  Clock,
+  MessageCircle,
+  X,
+} from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 const Feed = () => {
-  const router = useRouter()
+  const router = useRouter();
   const [isChatVisible, setIsChatVisible] = useState(false);
   const [messages, setMessages] = useState<{ sender: string; text: string }[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const apiKey = "AIzaSyAW08GMRJfT467Kys6Lz6cutglglFJgS0M";
+  const apiKey = 'AIzaSyAW08GMRJfT467Kys6Lz6cutglglFJgS0M';
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
   const handleUpload = () => {
-    router.push('/upload')
-  }
+    router.push('/upload');
+  };
 
   const toggleChat = () => {
     setIsChatVisible(!isChatVisible);
-  }
+  };
 
   const sendMessage = async () => {
     if (!inputMessage.trim()) return;
-    
-    // user ko kro add bc
+
     const userMessage = { sender: 'user', text: inputMessage };
-    setMessages([...messages, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInputMessage('');
     setIsLoading(true);
-    
-    //api
+
     try {
       const data = {
         contents: [
           {
-            parts: [{ text: inputMessage }]
-          }
-        ]
+            parts: [{ text: inputMessage }],
+          },
+        ],
       };
-      
+
       const response = await fetch(url, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json"
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
       });
-      
+
       const result = await response.json();
-      console.log("Response:", result);
-      
-      // Extract AI response from the result
-      let aiResponse = "Sorry, I couldn't process your request.";
+      let aiResponse = 'Sorry, I couldn\'t process your request.';
+
       if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
         aiResponse = result.candidates[0].content.parts[0].text;
       }
-      
-      // Add AI response to chat
-      setMessages(prev => [...prev, { sender: 'ai', text: aiResponse }]);
+
+      setMessages((prev) => [...prev, { sender: 'ai', text: aiResponse }]);
     } catch (error) {
-      console.error("Error:", error);
-      setMessages(prev => [...prev, { sender: 'ai', text: "Sorry, there was an error processing your request." }]);
+      console.error('Error:', error);
+      setMessages((prev) => [
+        ...prev,
+        { sender: 'ai', text: 'Sorry, there was an error processing your request.' },
+      ]);
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
-  // neeche ja mssg bhai apne aap
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // press enter kro
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       sendMessage();
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {/* Main Content Area */}
+      {/* Main Content */}
       <div className={`transition-all duration-300 ${isChatVisible ? 'w-3/4' : 'w-full'}`}>
         {/* Header */}
         <header className="bg-white shadow-sm border-b">
@@ -91,18 +97,18 @@ const Feed = () => {
               <BookOpen className="h-6 w-6 text-blue-600" />
               <span className="text-xl font-bold text-blue-600">csNerds</span>
             </div>
-            
+
             <div className="relative w-full max-w-md mx-4">
-              <input 
+              <input
                 type="text"
                 placeholder="Search notes..."
                 className="w-full py-2 px-4 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
             </div>
-            
+
             <div className="flex items-center space-x-4">
-              <button 
+              <button
                 onClick={toggleChat}
                 className="flex items-center p-2 rounded-lg hover:bg-gray-100 border border-gray-300"
               >
@@ -119,7 +125,7 @@ const Feed = () => {
           </div>
         </header>
 
-        {/* Main Content */}
+        {/* Main Section */}
         <main className="max-w-6xl mx-auto py-8 px-4">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold text-gray-800">My Notes</h1>
@@ -128,45 +134,29 @@ const Feed = () => {
                 <Filter className="h-4 w-4 mr-2" />
                 <span>Filter</span>
               </button>
-              <button className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+              <button
+                className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                onClick={handleUpload}
+              >
                 <Plus className="h-4 w-4 mr-2" />
-                <span onClick={handleUpload}>New Note</span>
+                <span>New Note</span>
               </button>
             </div>
           </div>
 
           {/* Tabs */}
           <div className="flex border-b mb-6">
-            <button className="px-4 py-2 border-b-2 border-blue-600 text-blue-600 font-medium">All Notes</button>
+            <button className="px-4 py-2 border-b-2 border-blue-600 text-blue-600 font-medium">
+              All Notes
+            </button>
             <button className="px-4 py-2 text-gray-600 hover:text-gray-800">Shared</button>
             <button className="px-4 py-2 text-gray-600 hover:text-gray-800">Favorites</button>
           </div>
 
-          {/* Notes Grid */}
+          {/* Notes */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Note Card 1 */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
-              <div className="p-5">
-                <div className="flex justify-between items-start mb-3">
-                  <h3 className="font-semibold text-lg text-gray-800">Algorithm Analysis</h3>
-                  <button className="text-gray-400 hover:text-yellow-500">
-                    <Star className="h-5 w-5" />
-                  </button>
-                </div>
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                  Big O notation, time complexity analysis, and space complexity for common algorithms...
-                </p>
-                <div className="flex justify-between items-center text-xs text-gray-500 mt-4 pt-2 border-t">
-                  <span className="flex items-center">
-                    <Clock className="h-3 w-3 mr-1" /> Updated 2h ago
-                  </span>
-                  <span>CS403</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Note Card 2 */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+            {/* Example Cards */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
               <div className="p-5">
                 <div className="flex justify-between items-start mb-3">
                   <h3 className="font-semibold text-lg text-gray-800">Sorting Algorithms</h3>
@@ -175,7 +165,7 @@ const Feed = () => {
                   </button>
                 </div>
                 <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                  Implementation and analysis of QuickSort, MergeSort, HeapSort, and other common sorting algorithms...
+                  QuickSort, MergeSort, HeapSort implementation and analysis...
                 </p>
                 <div className="flex justify-between items-center text-xs text-gray-500 mt-4 pt-2 border-t">
                   <span className="flex items-center">
@@ -186,8 +176,7 @@ const Feed = () => {
               </div>
             </div>
 
-            {/* Note Card 3 */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
               <div className="p-5">
                 <div className="flex justify-between items-start mb-3">
                   <h3 className="font-semibold text-lg text-gray-800">Graph Traversal</h3>
@@ -196,7 +185,7 @@ const Feed = () => {
                   </button>
                 </div>
                 <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                  BFS and DFS implementations, applications and complexity analysis. Examples of graph problems...
+                  BFS and DFS implementations, applications and complexity analysis...
                 </p>
                 <div className="flex justify-between items-center text-xs text-gray-500 mt-4 pt-2 border-t">
                   <span className="flex items-center">
@@ -206,98 +195,65 @@ const Feed = () => {
                 </div>
               </div>
             </div>
-
-            {/* Empty State - can be shown when there are no notes */}
-            <div className="hidden md:col-span-3 py-12 text-center">
-              <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <BookOpen className="h-10 w-10 text-gray-400" />
-              </div>
-              <h3 className="text-lg font-medium text-gray-800">No notes yet</h3>
-              <p className="text-gray-600 mt-2 mb-6">Create your first note to get started</p>
-              <button className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                <Plus className="h-4 w-4 mr-2" />
-                <span>Create New Note</span>
-              </button>
-            </div>
           </div>
         </main>
       </div>
 
-      {/* Chatbot Section */}
+      {/* Chatbot */}
       {isChatVisible && (
         <div className="w-1/4 bg-white border-l border-gray-200 flex flex-col h-screen">
-          {/* Chat Header */}
           <div className="bg-blue-600 text-white p-4 flex justify-between items-center">
             <div className="flex items-center">
               <MessageCircle className="h-5 w-5 mr-2" />
               <h3 className="font-medium">AI Assistant</h3>
             </div>
-            <button onClick={toggleChat} className="text-white hover:text-gray-200">
+            <button onClick={toggleChat}>
               <X className="h-5 w-5" />
             </button>
           </div>
 
-          {/* Messages Container */}
           <div className="flex-1 p-4 overflow-y-auto bg-gray-50">
             {messages.length === 0 ? (
               <div className="text-center text-gray-500 my-8">
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <MessageCircle className="h-8 w-8 text-blue-600" />
                 </div>
-                <h3 className="font-medium text-gray-700 mb-2">AI Assistant</h3>
-                <p>Ask me anything about CS concepts or help with your notes!</p>
+                <h3 className="text-gray-700 font-medium">Start a conversation</h3>
+                <p className="text-sm text-gray-500">Ask anything about your notes or concepts.</p>
               </div>
             ) : (
-              messages.map((msg, index) => (
-                <div 
-                  key={index} 
-                  className={`mb-4 ${msg.sender === 'user' ? 'text-right' : 'text-left'}`}
+              messages.map((msg, i) => (
+                <div
+                  key={i}
+                  className={`mb-3 px-4 py-2 rounded-lg max-w-[85%] ${
+                    msg.sender === 'user'
+                      ? 'bg-blue-100 self-end text-right ml-auto'
+                      : 'bg-gray-200 self-start text-left'
+                  }`}
                 >
-                  <div 
-                    className={`inline-block p-3 rounded-lg ${
-                      msg.sender === 'user' 
-                        ? 'bg-blue-600 text-white rounded-br-none' 
-                        : 'bg-gray-200 text-gray-800 rounded-bl-none'
-                    } max-w-xs break-words`}
-                  >
-                    {msg.text}
-                  </div>
+                  {msg.text}
                 </div>
               ))
-            )}
-            {isLoading && (
-              <div className="text-left mb-4">
-                <div className="inline-block p-3 rounded-lg bg-gray-200 text-gray-800 rounded-bl-none">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.4s'}}></div>
-                  </div>
-                </div>
-              </div>
             )}
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Area */}
-          <div className="border-t p-3">
-            <div className="flex items-center bg-gray-50 rounded-lg border border-gray-300">
-              <input
-                type="text"
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Ask about CS concepts..."
-                className="flex-1 py-2 px-3 bg-transparent focus:outline-none text-black"
-              />
-              <button 
-                onClick={sendMessage}
-                disabled={isLoading || !inputMessage.trim()}
-                className={`p-2 rounded-full mx-1 ${isLoading || !inputMessage.trim() ? 'text-gray-400' : 'text-blue-600 hover:bg-blue-50'}`}
-              >
-                <Send className="h-5 w-5" />
-              </button>
-            </div>
+          <div className="p-4 border-t flex items-center gap-2">
+            <input
+              type="text"
+              className="flex-1 py-2 px-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Type your message..."
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              onKeyDown={handleKeyPress}
+            />
+            <button
+              onClick={sendMessage}
+              disabled={isLoading}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            >
+              {isLoading ? '...' : 'Send'}
+            </button>
           </div>
         </div>
       )}
