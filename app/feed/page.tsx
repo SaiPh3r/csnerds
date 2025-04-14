@@ -13,6 +13,13 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
+type Document = {
+  public_id: string;
+  filename: string;
+  created_at: string;
+  secure_url: string;
+};
+
 const Feed = () => {
   const router = useRouter();
   const [isChatVisible, setIsChatVisible] = useState(false);
@@ -20,18 +27,10 @@ const Feed = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [documents, setDocuments] = useState<Document[]>([]);
 
-  const apiKey = 'AIzaSyAW08GMRJfT467Kys6Lz6cutglglFJgS0M';
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-  const handleUpload = () => {
-    router.push('/upload');
-  };
-
-  const toggleChat = () => {
-    setIsChatVisible(!isChatVisible);
-  };
-
+  // Move API key to server-side for security
+  // This will be handled through a server API route
   const sendMessage = async () => {
     if (!inputMessage.trim()) return;
 
@@ -41,24 +40,15 @@ const Feed = () => {
     setIsLoading(true);
 
     try {
-      const data = {
-        contents: [
-          {
-            parts: [{ text: inputMessage }],
-          },
-        ],
-      };
-
-      const response = await fetch(url, {
+      // Create a server-side API endpoint to handle the Gemini API call
+      const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: inputMessage }),
       });
 
       const result = await response.json();
-      let aiResponse = 'Sorry, I couldn\'t process your request.';
+      let aiResponse = "Sorry, I couldn't process your request.";
 
       if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
         aiResponse = result.candidates[0].content.parts[0].text;
@@ -76,14 +66,30 @@ const Feed = () => {
     }
   };
 
+  const handleUpload = () => {
+    router.push('/upload');
+  };
+
+  const fetchDocuments = async () => {
+    try {
+      const res = await fetch('/api/docs');
+      const data = await res.json();
+      setDocuments(data);
+    } catch (error) {
+      console.error('Failed to fetch docs:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchDocuments();
+  }, []);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      sendMessage();
-    }
+    if (e.key === 'Enter') sendMessage();
   };
 
   return (
@@ -109,7 +115,7 @@ const Feed = () => {
 
             <div className="flex items-center space-x-4">
               <button
-                onClick={toggleChat}
+                onClick={() => setIsChatVisible(!isChatVisible)}
                 className="flex items-center p-2 rounded-lg hover:bg-gray-100 border border-gray-300"
               >
                 <MessageCircle className="h-5 w-5 text-blue-600 mr-1" />
@@ -153,48 +159,40 @@ const Feed = () => {
             <button className="px-4 py-2 text-gray-600 hover:text-gray-800">Favorites</button>
           </div>
 
-          {/* Notes */}
+          {/* Notes Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Example Cards */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-              <div className="p-5">
-                <div className="flex justify-between items-start mb-3">
-                  <h3 className="font-semibold text-lg text-gray-800">Sorting Algorithms</h3>
-                  <button className="text-yellow-500">
-                    <Star className="h-5 w-5" />
-                  </button>
-                </div>
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                  QuickSort, MergeSort, HeapSort implementation and analysis...
-                </p>
-                <div className="flex justify-between items-center text-xs text-gray-500 mt-4 pt-2 border-t">
-                  <span className="flex items-center">
-                    <Clock className="h-3 w-3 mr-1" /> Updated 1d ago
-                  </span>
-                  <span>CS403</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-              <div className="p-5">
-                <div className="flex justify-between items-start mb-3">
-                  <h3 className="font-semibold text-lg text-gray-800">Graph Traversal</h3>
-                  <button className="text-gray-400 hover:text-yellow-500">
-                    <Star className="h-5 w-5" />
-                  </button>
-                </div>
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                  BFS and DFS implementations, applications and complexity analysis...
-                </p>
-                <div className="flex justify-between items-center text-xs text-gray-500 mt-4 pt-2 border-t">
-                  <span className="flex items-center">
-                    <Clock className="h-3 w-3 mr-1" /> Updated 3d ago
-                  </span>
-                  <span>CS403</span>
+            {documents.map((doc) => (
+              <div
+                key={doc.public_id}
+                className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
+              >
+                <div className="p-5">
+                  <div className="flex justify-between items-start mb-3">
+                    <h3 className="font-semibold text-lg text-gray-800 line-clamp-1">
+                      {doc.filename}
+                    </h3>
+                    <a
+                      href={doc.secure_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-yellow-500"
+                    >
+                      <Star className="h-5 w-5" />
+                    </a>
+                  </div>
+                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                    View or download this file from Cloudinary.
+                  </p>
+                  <div className="flex justify-between items-center text-xs text-gray-500 mt-4 pt-2 border-t">
+                    <span className="flex items-center">
+                      <Clock className="h-3 w-3 mr-1" />
+                      {new Date(doc.created_at).toLocaleDateString()}
+                    </span>
+                    <span>CS403</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            ))}
           </div>
         </main>
       </div>
@@ -207,7 +205,7 @@ const Feed = () => {
               <MessageCircle className="h-5 w-5 mr-2" />
               <h3 className="font-medium">AI Assistant</h3>
             </div>
-            <button onClick={toggleChat}>
+            <button onClick={() => setIsChatVisible(false)}>
               <X className="h-5 w-5" />
             </button>
           </div>
