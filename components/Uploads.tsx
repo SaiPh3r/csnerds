@@ -2,7 +2,7 @@
 'use client'
 
 import React, { useState, useRef } from 'react';
-import { Upload, FileText, Check, AlertCircle } from 'lucide-react';
+import { Upload, FileText, Check, AlertCircle, Eye } from 'lucide-react';
 
 const Uploads = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -10,7 +10,7 @@ const Uploads = () => {
   const [preview, setPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle');
-  const [uploadResult, setUploadResult] = useState<{ url: string, public_id: string } | null>(null);
+  const [uploadResult, setUploadResult] = useState<{ url: string, public_id: string, type: string, title: string } | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -25,16 +25,22 @@ const Uploads = () => {
       const filename = selectedFile.name;
       const titleWithoutExtension = filename.substring(0, filename.lastIndexOf('.')) || filename;
       setFileTitle(titleWithoutExtension);
-    }
-    
-    if (selectedFile && selectedFile.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result as string);
-      };
-      reader.readAsDataURL(selectedFile);
-    } else {
-      setPreview(null);
+      
+      console.log('Selected file type:', selectedFile.type); // Debug log for file type
+      
+      if (selectedFile.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setPreview(reader.result as string);
+        };
+        reader.readAsDataURL(selectedFile);
+      } else if (selectedFile.type === 'application/pdf') {
+        // For PDFs, we don't show a preview, just indicate it's a PDF
+        setPreview(null);
+      } else {
+        setPreview(null);
+        console.warn('Unsupported file type:', selectedFile.type);
+      }
     }
   };
 
@@ -49,6 +55,7 @@ const Uploads = () => {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('title', fileTitle || file.name); // Add title to form data
+      formData.append('fileType', file.type); // Send file type to backend
 
       const response = await fetch('/api/upload', {
         method: 'POST',
@@ -77,6 +84,12 @@ const Uploads = () => {
     fileInputRef.current?.click();
   };
 
+  // Function to open PDF in our custom viewer
+  const openPdfViewer = (url: string, title: string) => {
+    const viewerUrl = `/view-pdf?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`;
+    window.open(viewerUrl, '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <div className="w-full">
       <h2 className="text-xl font-semibold text-center mb-4 text-blue-600">Upload CS403 Notes</h2>
@@ -100,8 +113,9 @@ const Uploads = () => {
           </div>
         ) : file ? (
           <div className="flex flex-col items-center">
-            <FileText size={48} className="text-blue-500 mb-2" />
+            <FileText size={48} className={file?.type === 'application/pdf' ? 'text-red-500 mb-2' : 'text-blue-500 mb-2'} />
             <p className="text-gray-700">{file.name}</p>
+            {file.type === 'application/pdf' && <p className="text-xs text-gray-500">PDF Document</p>}
           </div>
         ) : (
           <div className="flex flex-col items-center">
@@ -153,11 +167,39 @@ const Uploads = () => {
       {uploadResult && uploadStatus === 'success' && (
         <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
           <h3 className="font-semibold text-gray-800 mb-2">File uploaded successfully</h3>
-          <p className="text-sm text-gray-600 mb-1">
-            <a href={uploadResult.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-              View Uploaded File
-            </a>
-          </p>
+          
+          <div className="flex items-center gap-2 mt-2">
+            {uploadResult.type === 'pdf' ? (
+              <>
+                <button 
+                  onClick={() => openPdfViewer(uploadResult.url, uploadResult.title)}
+                  className="flex items-center px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700"
+                >
+                  <Eye size={16} className="mr-1" />
+                  View PDF
+                </button>
+                <a 
+                  href={uploadResult.url} 
+                  download={uploadResult.title || "document.pdf"}
+                  className="flex items-center px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200"
+                >
+                  Download
+                </a>
+              </>
+            ) : (
+              <a 
+                href={uploadResult.url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700"
+              >
+                <Eye size={16} className="mr-1" />
+                View Image
+              </a>
+            )}
+          </div>
+          
+          <p className="text-xs text-gray-500 mt-2">File Type: {uploadResult.type}</p>
         </div>
       )}
     </div>

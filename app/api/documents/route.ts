@@ -1,4 +1,5 @@
-// app/api/docs/route.js
+
+// app/api/documents/route.js
 import { NextResponse } from 'next/server';
 import { v2 as cloudinary } from 'cloudinary';
 
@@ -41,3 +42,6 @@ export async function GET() {
     return NextResponse.json([], { status: 200 });
   }
 }
+
+
+
