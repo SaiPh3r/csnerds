@@ -1,6 +1,6 @@
 // app/api/upload/route.js
 import { NextResponse } from 'next/server';
-import cloudinary from '@/claudinary.js';
+import cloudinary from '@/cloudinary.js';
 import { Readable } from 'stream';
 
 export async function POST(request) {
@@ -22,22 +22,26 @@ export async function POST(request) {
     // Determine if it's a PDF file
     const isPdf = fileType === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
     
+    // Create a unique, URL-friendly ID
+    const fileId = `${Date.now()}_${(title || file.name).replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}`;
+    
+    // Basic upload options
+    const uploadOptions = {
+      folder: '403notes',
+      public_id: fileId,
+      context: `title=${title || file.name}`
+    };
+    
+    // For PDFs, we need special handling
+    if (isPdf) {
+      uploadOptions.resource_type = 'raw'; // Use raw for PDFs
+      uploadOptions.format = 'pdf';
+      uploadOptions.type = 'upload';
+    }
+    
     const result = await new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
-        {
-          folder: '403notes', // custom folder for CS403 uploads
-          allowed_formats: ['jpg', 'png', 'pdf'],
-          resource_type: isPdf ? 'raw' : 'image', // Use raw for PDFs, image for images
-          context: `title=${title}`, // Store the title as metadata in Cloudinary
-          public_id: `${Date.now()}_${title.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}`, // Create a unique URL-friendly public_id
-          // Add flags for content disposition
-          ...(isPdf && { 
-            access_mode: 'public',
-            display_name: title,
-            // Setting attachment: false tells Cloudinary to display in browser rather than download
-            attachment: false 
-          })
-        },
+        uploadOptions,
         (error, result) => {
           if (error) {
             console.error('Cloudinary error:', error);
@@ -55,8 +59,9 @@ export async function POST(request) {
       success: true,
       url: result.secure_url,
       public_id: result.public_id,
-      title: title, // Include the title in the response
-      type: isPdf ? 'pdf' : 'image', // to help when rendering on feed
+      title: title || file.name,
+      type: isPdf ? 'pdf' : 'image',
+      created_at: new Date().toISOString()
     });
   } catch (error) {
     console.error('Upload error:', error);
