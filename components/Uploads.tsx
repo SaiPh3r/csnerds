@@ -60,6 +60,7 @@ const Uploads = () => {
       const response = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
+        
       });
 
       const result = await response.json();
@@ -95,7 +96,7 @@ const Uploads = () => {
       <h2 className="text-xl font-semibold text-center mb-4 text-blue-600">Upload CS403 Notes</h2>
       
       <div 
-        className="border-2 border-dashed border-blue-300 rounded-lg p-6 mb-4 text-center cursor-pointer"
+        className="border-2 border-dashed border-blue-200 rounded-lg p-6 mb-4 text-center cursor-pointer hover:bg-blue-50 transition-colors"
         onClick={triggerFileInput}
       >
         <input
@@ -108,18 +109,18 @@ const Uploads = () => {
         
         {preview ? (
           <div className="flex flex-col items-center">
-            <img src={preview} alt="Preview" className="max-h-40 max-w-full mb-4 rounded" />
+            <img src={preview} alt="Preview" className="max-h-40 max-w-full mb-4 rounded shadow-sm" />
             <p className="text-gray-700">{file?.name}</p>
           </div>
         ) : file ? (
           <div className="flex flex-col items-center">
-            <FileText size={48} className={file?.type === 'application/pdf' ? 'text-red-500 mb-2' : 'text-blue-500 mb-2'} />
+            <FileText size={48} className={file?.type === 'application/pdf' ? 'text-red-400 mb-2' : 'text-blue-500 mb-2'} />
             <p className="text-gray-700">{file.name}</p>
             {file.type === 'application/pdf' && <p className="text-xs text-gray-500">PDF Document</p>}
           </div>
         ) : (
           <div className="flex flex-col items-center">
-            <Upload size={48} className="text-blue-500 mb-2" />
+            <Upload size={48} className="text-blue-400 mb-2" />
             <p className="text-gray-700">Click to select a file</p>
             <p className="text-gray-500 text-sm mt-1">Supports JPG, PNG, and PDF files</p>
           </div>
@@ -133,7 +134,7 @@ const Uploads = () => {
         )}
         
         {uploadStatus === 'error' && (
-          <div className="mt-4 flex items-center justify-center text-red-600">
+          <div className="mt-4 flex items-center justify-center text-red-500">
             <AlertCircle size={20} className="mr-2" />
             <span>{errorMessage || 'Upload failed'}</span>
           </div>
@@ -142,7 +143,7 @@ const Uploads = () => {
       
       {file && (
         <div className="mb-4">
-          <label htmlFor="fileTitle" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="fileTitle" className="block text-sm font-medium text-gray-600 mb-1">
             Title
           </label>
           <input
@@ -150,7 +151,7 @@ const Uploads = () => {
             id="fileTitle"
             value={fileTitle}
             onChange={(e) => setFileTitle(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
             placeholder="Enter a title for your file"
           />
         </div>
@@ -159,13 +160,13 @@ const Uploads = () => {
       <button
         onClick={handleUpload}
         disabled={!file || isUploading || uploadStatus === 'success'}
-        className="w-full py-2 px-4 rounded-lg font-medium bg-blue-600 text-white disabled:bg-gray-300 disabled:text-gray-500"
+        className="w-full py-2 px-4 rounded-lg font-medium bg-blue-500 text-white hover:bg-blue-600 transition-colors disabled:bg-gray-200 disabled:text-gray-400"
       >
         {isUploading ? 'Uploading...' : uploadStatus === 'success' ? 'Uploaded' : 'Upload File'}
       </button>
       
       {uploadResult && uploadStatus === 'success' && (
-        <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+        <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-lg">
           <h3 className="font-semibold text-gray-800 mb-2">File uploaded successfully</h3>
           
           <div className="flex items-center gap-2 mt-2">
@@ -173,7 +174,7 @@ const Uploads = () => {
               <>
                 <button 
                   onClick={() => openPdfViewer(uploadResult.url, uploadResult.title)}
-                  className="flex items-center px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700"
+                  className="flex items-center px-3 py-1.5 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600"
                 >
                   <Eye size={16} className="mr-1" />
                   View PDF
@@ -191,7 +192,7 @@ const Uploads = () => {
                 href={uploadResult.url} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700"
+                className="flex items-center px-3 py-1.5 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600"
               >
                 <Eye size={16} className="mr-1" />
                 View Image
